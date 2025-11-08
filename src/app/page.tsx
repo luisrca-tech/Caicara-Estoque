@@ -1,12 +1,15 @@
 
-import { HydrateClient } from "~/trpc/server";
+import { HydrateClient } from "~/trpc/server"
+import { ProductsSection } from "~/components/products"
 
 export default async function Home() {
-	return (
-		<HydrateClient>
-			<main className="flex min-h-screen flex-col items-center justify-center bg-linear-to-b from-[#2e026d] to-[#15162c] text-white">
-			<h1>Caicara Stock</h1>
-			</main>
-		</HydrateClient>
-	);
+  return (
+    <HydrateClient>
+      <main className="min-h-screen bg-linear-to-br from-background via-background to-muted/40 px-4 py-12 text-foreground sm:px-6 lg:px-12">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-12">
+          <ProductsSection />
+        </div>
+      </main>
+    </HydrateClient>
+  )
 }
