@@ -1,7 +1,6 @@
 import { z } from "zod";
-import { ParsePriceSchema } from "./parsePrice.schema";
-import { ParseQuantitySchema } from "./parseQuantity.schema";
-
+import { ParsePriceSchema } from "../../schema/parsePrice.schema";
+import { ParseQuantitySchema } from "../../schema/parseQuantity.schema";
 
 export const CreateProductSchema = z.object({
 	name: z
