@@ -34,5 +34,14 @@ export const useProducts = () => {
     },
   });
 
-  return { createProduct, updateProduct, deleteProduct };
+  const adjustQuantity = api.products.adjustQuantity.useMutation({
+    onSuccess: () => {
+      trpcUtils.products.list.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao ajustar quantidade");
+    },
+  });
+
+  return { createProduct, updateProduct, deleteProduct, adjustQuantity };
 };

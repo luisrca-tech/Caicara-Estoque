@@ -1,6 +1,7 @@
 import "~/styles/globals.css";
 
 import type { Metadata } from "next";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { inter } from "~/assets/fonts/inter";
@@ -18,10 +19,12 @@ export default function RootLayout({
 	return (
 		<html className={`${inter.variable}`} lang="en">
 			<body>
-				<TRPCReactProvider>
-					{children}
-					<Toaster richColors />
-				</TRPCReactProvider>
+				<NuqsAdapter>
+					<TRPCReactProvider>
+						{children}
+						<Toaster richColors />
+					</TRPCReactProvider>
+				</NuqsAdapter>
 			</body>
 		</html>
 	);

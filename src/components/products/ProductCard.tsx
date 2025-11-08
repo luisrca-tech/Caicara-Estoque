@@ -1,5 +1,6 @@
 "use client"
 
+import { Plus, Minus } from "lucide-react"
 import { Button } from "~/components/ui/button"
 import {
   Card,
@@ -21,7 +22,14 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
   timeStyle: "short",
 })
 
-export const ProductCard = ({ product, onEdit, onDelete, isDeleting }: ProductCardProps) => {
+export const ProductCard = ({ 
+  product, 
+  onEdit, 
+  onDelete, 
+  onAdjustQuantity,
+  isDeleting,
+  isAdjustingQuantity 
+}: ProductCardProps) => {
   const createdLabel =
     product.createdAt instanceof Date ? dateFormatter.format(product.createdAt) : ""
   const quantityStatus =
@@ -62,9 +70,35 @@ export const ProductCard = ({ product, onEdit, onDelete, isDeleting }: ProductCa
           <p className="text-3xl font-bold text-primary">
             {priceFormatter.format(Number(product.price))}
           </p>
-          <p className="text-sm text-muted-foreground">
-            {product.quantity} {product.quantity === 1 ? "unidade" : "unidades"} {product.quantity === 1 ? "disponível" : "disponíveis"}
-          </p>
+          <div className="mt-2 flex items-center gap-3">
+            <p className="text-sm text-muted-foreground">
+              {product.quantity} {product.quantity === 1 ? "unidade" : "unidades"} {product.quantity === 1 ? "disponível" : "disponíveis"}
+            </p>
+            {onAdjustQuantity && (
+              <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-background/50 p-1">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={() => onAdjustQuantity(product.id, -1)}
+                  disabled={isAdjustingQuantity || product.quantity === 0}
+                  title="Reduzir quantidade"
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={() => onAdjustQuantity(product.id, 1)}
+                  disabled={isAdjustingQuantity}
+                  title="Aumentar quantidade"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
         <p className="text-sm text-muted-foreground">
           {product.description?.trim() ? product.description : "Sem descrição ainda."}
