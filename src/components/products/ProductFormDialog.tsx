@@ -94,7 +94,7 @@ export const ProductFormDialog = ({
               </Label>
               <Input
                 id="name"
-                placeholder="Ex: Caicara Pilsner 330ml"
+                placeholder="Ex: Produto XYZ 500g"
                 {...register("name")}
                 maxLength={256}
               />

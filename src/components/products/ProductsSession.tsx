@@ -160,14 +160,14 @@ export const ProductsSection = () => {
         <div className="relative z-10 flex flex-col gap-10 p-10 sm:p-12">
           <div className="max-w-3xl space-y-4">
             <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-              Caiçara Stock
+              Caiçara Estoque
             </span>
             <h1 className="text-3xl font-bold sm:text-4xl lg:text-5xl">
-              Gerencie seu estoque com sabor e precisão.
+              Gerencie seu estoque com eficiência e precisão.
             </h1>
             <p className="text-base text-muted-foreground sm:text-lg">
-              Acompanhe todas as suas cervejas em um só lugar, monitore os níveis de estoque e mantenha suas torneiras fluindo.
-              Crie lançamentos sazonais, atualize preços rapidamente e mantenha um serviço perfeito.
+              Acompanhe todos os seus produtos em um só lugar, monitore os níveis de estoque e mantenha seu negócio funcionando.
+              Adicione novos produtos, atualize preços rapidamente e mantenha seu inventário sempre atualizado.
             </p>
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
               {heroStats.map((stat) => (
@@ -229,8 +229,8 @@ export const ProductsSection = () => {
         <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/50 bg-card/60 p-12 text-center">
           <p className="text-lg font-semibold">Nenhum produto ainda</p>
           <p className="max-w-md text-sm text-muted-foreground">
-            Comece adicionando suas cervejas principais ou novas criações sazonais. Elas aparecerão aqui
-            prontas para serem gerenciadas.
+            Comece adicionando seus produtos principais ou novos itens ao catálogo. Eles aparecerão aqui
+            prontos para serem gerenciados.
           </p>
           <Button onClick={handleCreateClick}>Adicionar seu primeiro produto</Button>
         </div>
@@ -248,7 +248,7 @@ export const ProductsSection = () => {
         title={formMode === "create" ? "Criar produto" : "Atualizar produto"}
         description={
           formMode === "create"
-            ? "Crie uma nova cerveja para a linha Caicara."
+            ? "Adicione um novo produto ao seu catálogo."
             : "Ajuste os detalhes para manter seu estoque atualizado e preciso."
         }
         submitLabel={formMode === "create" ? "Criar produto" : "Salvar alterações"}
