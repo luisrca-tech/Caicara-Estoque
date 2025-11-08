@@ -27,27 +27,27 @@ export const ProductDeleteDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <Trash2 className="size-5" />
-            Delete product
+            Excluir produto
           </DialogTitle>
           <DialogDescription>
-            Are you sure you want to remove {product?.name}? This action cannot be undone.
+            Tem certeza que deseja remover {product?.name}? Esta ação não pode ser desfeita.
           </DialogDescription>
         </DialogHeader>
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-muted-foreground">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-[2px] size-4 text-destructive" />
             <p>
-              Deleting this product will remove it from inventory listings and reports. Consider
-              setting the quantity to zero if you prefer to keep the record.
+              Excluir este produto o removerá das listagens e relatórios de inventário. Considere
+              definir a quantidade como zero se preferir manter o registro.
             </p>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isDeleting}>
-            Cancel
+            Cancelar
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={isDeleting}>
-            {isDeleting ? "Deleting..." : "Delete"}
+            {isDeleting ? "Excluindo..." : "Excluir"}
           </Button>
         </DialogFooter>
       </DialogContent>

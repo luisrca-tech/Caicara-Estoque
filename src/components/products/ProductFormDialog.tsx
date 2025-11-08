@@ -90,7 +90,7 @@ export const ProductFormDialog = ({
           <div className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="name" isRequired>
-                Name
+                Nome
               </Label>
               <Input
                 id="name"
@@ -104,10 +104,10 @@ export const ProductFormDialog = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Descrição</Label>
               <Textarea
                 id="description"
-                placeholder="Tell customers what makes this product special."
+                placeholder="Conte aos clientes o que torna este produto especial."
                 {...register("description")}
                 maxLength={256}
               />
@@ -119,7 +119,7 @@ export const ProductFormDialog = ({
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="price" isRequired>
-                  Price
+                  Preço
                 </Label>
                 <Input
                   id="price"
@@ -131,14 +131,14 @@ export const ProductFormDialog = ({
                   <p className="text-xs text-destructive">{errors.price.message}</p>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    Use comma or dot for decimals, e.g. 9,90
+                    Use vírgula ou ponto para decimais, ex: 9,90
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="quantity" isRequired>
-                  Quantity
+                  Quantidade
                 </Label>
                 <Input
                   id="quantity"
@@ -155,10 +155,10 @@ export const ProductFormDialog = ({
 
           <DialogFooter>
             <Button variant="outline" type="button" onClick={() => handleOpenChange(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : submitLabel}
+              {isSubmitting ? "Salvando..." : submitLabel}
             </Button>
           </DialogFooter>
         </form>

@@ -4,28 +4,28 @@ export const productFormSchema = z.object({
   id: z.number().int().positive().optional(),
   name: z
     .string()
-    .min(1, { message: "Name is required" })
-    .max(256, { message: "Name must be less than 256 characters" }),
-  description: z.string().max(256, { message: "Description must be less than 256 characters" }),
+    .min(1, { message: "Nome é obrigatório" })
+    .max(256, { message: "Nome deve ter menos de 256 caracteres" }),
+  description: z.string().max(256, { message: "Descrição deve ter menos de 256 caracteres" }),
   price: z
     .string()
-    .min(1, { message: "Price is required" })
+    .min(1, { message: "Preço é obrigatório" })
     .refine(
       (value) => {
         const normalized = value.replace(",", ".")
         const num = Number.parseFloat(normalized)
         return Number.isFinite(num) && num >= 0
       },
-      { message: "Price must be a valid non-negative number" },
+      { message: "Preço deve ser um número válido não negativo" },
     ),
   quantity: z
     .string()
-    .min(1, { message: "Quantity is required" })
+    .min(1, { message: "Quantidade é obrigatória" })
     .refine(
       (value) => {
         const num = Number.parseInt(value, 10)
         return Number.isInteger(num) && num >= 0
       },
-      { message: "Quantity must be a valid non-negative integer" },
+      { message: "Quantidade deve ser um número inteiro válido não negativo" },
     ),
 })

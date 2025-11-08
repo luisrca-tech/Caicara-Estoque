@@ -27,16 +27,16 @@ export const ProductCard = ({ product, onEdit, onDelete, isDeleting }: ProductCa
   const quantityStatus =
     product.quantity === 0
       ? {
-          label: "Out of stock",
+          label: "Esgotado",
           className: "bg-destructive/10 text-destructive border border-destructive/20",
         }
       : product.quantity < 5
         ? {
-            label: "Low stock",
+            label: "Estoque baixo",
             className: "bg-amber-500/10 text-amber-700 border border-amber-500/20",
           }
         : {
-            label: "In stock",
+            label: "Em estoque",
             className: "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20",
           }
 
@@ -47,7 +47,7 @@ export const ProductCard = ({ product, onEdit, onDelete, isDeleting }: ProductCa
           <div>
             <CardTitle className="text-xl font-semibold">{product.name}</CardTitle>
             <CardDescription className="mt-1 text-xs text-muted-foreground">
-              added {createdLabel}
+              adicionado {createdLabel}
             </CardDescription>
           </div>
           <span
@@ -63,19 +63,19 @@ export const ProductCard = ({ product, onEdit, onDelete, isDeleting }: ProductCa
             {priceFormatter.format(Number(product.price))}
           </p>
           <p className="text-sm text-muted-foreground">
-            {product.quantity} {product.quantity === 1 ? "unit" : "units"} available
+            {product.quantity} {product.quantity === 1 ? "unidade" : "unidades"} {product.quantity === 1 ? "disponível" : "disponíveis"}
           </p>
         </div>
         <p className="text-sm text-muted-foreground">
-          {product.description?.trim() ? product.description : "No description yet."}
+          {product.description?.trim() ? product.description : "Sem descrição ainda."}
         </p>
       </CardContent>
       <CardFooter className="flex items-center justify-between gap-2">
         <Button size="sm" variant="outline" onClick={() => onEdit(product)}>
-          Edit
+          Editar
         </Button>
         <Button size="sm" variant="destructive" onClick={() => onDelete(product)} disabled={isDeleting}>
-          {isDeleting ? "Deleting..." : "Delete"}
+          {isDeleting ? "Excluindo..." : "Excluir"}
         </Button>
       </CardFooter>
     </Card>

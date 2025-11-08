@@ -131,15 +131,15 @@ export const ProductsSection = () => {
 
   const heroStats = [
     {
-      label: "Products",
+      label: "Produtos",
       value: totalProducts,
     },
     {
-      label: "Low stock",
+      label: "Estoque baixo",
       value: lowStockCount,
     },
     {
-      label: "Sold out",
+      label: "Esgotado",
       value: soldOutCount,
     },
   ]
@@ -150,7 +150,7 @@ export const ProductsSection = () => {
         <div className="absolute inset-0">
           <Image
             src="/images/caicara-beer.png"
-            alt="Caicara Beer banner"
+            alt="Banner Caicara Beer"
             fill
             priority
             className="object-cover"
@@ -163,11 +163,11 @@ export const ProductsSection = () => {
               Caiçara Stock
             </span>
             <h1 className="text-3xl font-bold sm:text-4xl lg:text-5xl">
-              Craft your inventory with flavor and precision.
+              Gerencie seu estoque com sabor e precisão.
             </h1>
             <p className="text-base text-muted-foreground sm:text-lg">
-              Track all your beers in one place, monitor stock levels, and keep your taps flowing.
-              Create seasonal releases, update pricing on the fly, and maintain a perfect pour.
+              Acompanhe todas as suas cervejas em um só lugar, monitore os níveis de estoque e mantenha suas torneiras fluindo.
+              Crie lançamentos sazonais, atualize preços rapidamente e mantenha um serviço perfeito.
             </p>
             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
               {heroStats.map((stat) => (
@@ -191,21 +191,21 @@ export const ProductsSection = () => {
           <Input
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search products by name, description, or price..."
+            placeholder="Buscar produtos por nome, descrição ou preço..."
             className="pl-4"
           />
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" onClick={() => refetch()}>
-            Refresh
+            Atualizar
           </Button>
-          <Button onClick={handleCreateClick}>New Product</Button>
+          <Button onClick={handleCreateClick}>Novo Produto</Button>
         </div>
       </div>
 
       {isError ? (
         <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-destructive">
-          Something went wrong while loading products. Please try again.
+          Algo deu errado ao carregar os produtos. Por favor, tente novamente.
         </div>
       ) : null}
 
@@ -227,12 +227,12 @@ export const ProductsSection = () => {
 
       {!isLoading && filteredProducts.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/50 bg-card/60 p-12 text-center">
-          <p className="text-lg font-semibold">No products yet</p>
+          <p className="text-lg font-semibold">Nenhum produto ainda</p>
           <p className="max-w-md text-sm text-muted-foreground">
-            Start by adding your flagship beers or new seasonal creations. They will appear here
-            ready to be managed.
+            Comece adicionando suas cervejas principais ou novas criações sazonais. Elas aparecerão aqui
+            prontas para serem gerenciadas.
           </p>
-          <Button onClick={handleCreateClick}>Add your first product</Button>
+          <Button onClick={handleCreateClick}>Adicionar seu primeiro produto</Button>
         </div>
       ) : null}
 
@@ -245,13 +245,13 @@ export const ProductsSection = () => {
             setIsFormOpen(open)
           }
         }}
-        title={formMode === "create" ? "Create product" : "Update product"}
+        title={formMode === "create" ? "Criar produto" : "Atualizar produto"}
         description={
           formMode === "create"
-            ? "Craft a new brew for the Caicara lineup."
-            : "Tweak details to keep your stock fresh and accurate."
+            ? "Crie uma nova cerveja para a linha Caicara."
+            : "Ajuste os detalhes para manter seu estoque atualizado e preciso."
         }
-        submitLabel={formMode === "create" ? "Create product" : "Save changes"}
+        submitLabel={formMode === "create" ? "Criar produto" : "Salvar alterações"}
         initialValues={formInitialValues}
         onSubmit={handleFormSubmit}
         isSubmitting={isSubmitting}
