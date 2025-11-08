@@ -18,4 +18,4 @@ if (!databaseUrl) {
 const conn = globalForDb.conn ?? postgres(databaseUrl);
 if (process.env.NODE_ENV !== 'production') globalForDb.conn = conn;
 
-export const db = drizzle(conn, { schema: { ...schema } });
+export const db = drizzle(conn, { schema: { ...schema } });;

@@ -1,4 +1,4 @@
-import { createTable } from "../schema";
+import { createTable } from "../table";
 
 export const products = createTable("product", (d) => ({
 	id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
