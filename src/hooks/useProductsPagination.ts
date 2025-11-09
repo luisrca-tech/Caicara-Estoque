@@ -7,7 +7,7 @@ export const useProductsPagination = (
   searchTerm: string,
   isMobile: boolean,
   page: number,
-  pageSize: number = 10
+  pageSize: number = 9
 ) => {
   const { data, isLoading, isError, error } = api.products.list.useQuery(
     {

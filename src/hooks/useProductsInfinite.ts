@@ -17,7 +17,7 @@ export const useProductsInfinite = (
   } = api.products.list.useInfiniteQuery(
     (({ pageParam }: { pageParam: number | undefined }) => ({
       cursor: pageParam,
-      limit: 10,
+      limit: 9,
       search: searchTerm.trim() || undefined,
     })) as any,
     {

@@ -51,7 +51,7 @@ export const ProductsSection = () => {
   }
 
   const isMobile = useBreakpoint()
-  const pagination = useProductsPagination(deferredSearchTerm, isMobile, page, 10)
+  const pagination = useProductsPagination(deferredSearchTerm, isMobile, page, 9)
   const infinite = useProductsInfinite(deferredSearchTerm, isMobile)
 
   const products = isMobile ? infinite.products : pagination.products
@@ -249,7 +249,7 @@ export const ProductsSection = () => {
         <div className="flex items-center justify-between rounded-2xl border border-border/40 bg-card/80 p-4">
           <div className="text-sm text-muted-foreground">
             Página {page} de {pagination.totalPages || 1}
-            {pagination.total > 0 && ` • ${pagination.total} produtos encontrados`}
+            {pagination.total > 0 && ` • ${products.length} produtos encontrados`}
           </div>
           <div className="flex gap-2">
             <Button
