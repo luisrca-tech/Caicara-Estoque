@@ -1,22 +1,78 @@
 import { orders } from "~/server/db/schema";
 import { createTRPCRouter, publicProcedure } from "../../trpc";
-import { desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, gte, lte } from "drizzle-orm";
 import z from "zod";
 import { CreateOrderSchema } from "./schema/createOrderSchema";
 import { UpdateOrderSchema } from "./schema/updateOrderSchema";
 import { orderItems } from "~/server/db/schema/ordersItems";
 import { formatToBrazilianDate } from "~/utils/formatToBrazilianDate";
+import { ListOrderSchema } from "./schema/listOrder.schema";
 
 export const ordersRouter = createTRPCRouter({
-  list: publicProcedure.query(async ({ ctx }) => {
-    const rows = await ctx.db.select().from(orders).orderBy(desc(orders.createdAt));
+  list: publicProcedure.input(ListOrderSchema).query(async ({ ctx, input }) => {
+    const dateClauses = [];
+    if (input.dateFrom) {
+      dateClauses.push(gte(orders.orderDate, input.dateFrom.toISOString().slice(0, 10)));
+    }
+    if (input.dateTo) {
+      dateClauses.push(lte(orders.orderDate, input.dateTo.toISOString().slice(0, 10)));
+    }
+    const whereClause = dateClauses.length > 0 ? and(...dateClauses) : undefined;
 
-    return rows.map((row) => ({
-      ...row,
-      orderDate: formatToBrazilianDate(row.orderDate),
-    }));
+    if (input.cursor !== undefined) {
+      const items = await ctx.db.select().from(orders).where(whereClause ? and(whereClause, gt(orders.id, input.cursor)) : gt(orders.id, input.cursor)).orderBy(input.order === "asc" ? asc(orders.id) : desc(orders.id)).limit(input.limit + 1);
+      const hasMore = items.length > input.limit;
+      const actualItems = hasMore ? items.slice(0, -1) : items;
+      const nextCursor = hasMore && actualItems.length > 0 ? actualItems[actualItems.length - 1]?.id ?? null : null;
+
+      return {
+        items: actualItems.map((item) => ({
+          ...item,
+          orderDate: formatToBrazilianDate(item.orderDate),
+        })),
+        pagination: {
+          nextCursor,
+          hasMore,
+        },
+      };
+    }
+
+    if (input.page !== undefined) {
+      const offset = (input.page - 1) * input.limit;
+
+      const [items, totalResult] = await Promise.all([
+        ctx.db.select().from(orders).where(whereClause).orderBy(input.order === "asc" ? asc(orders.id) : desc(orders.id)).limit(input.limit).offset(offset),
+        ctx.db.select({ count: count() }).from(orders).where(whereClause),
+      ]);
+
+      const total = totalResult[0]?.count ?? 0;
+      const totalPages = Math.ceil(total / input.limit);
+
+      return {
+        items: items.map((item) => ({
+          ...item,
+          orderDate: formatToBrazilianDate(item.orderDate),
+        })),
+        pagination: {
+          page: input.page,
+          limit: input.limit,
+          total,
+          totalPages,
+          hasMore: input.page < totalPages,
+        },
+      };
+    }
+
+    const allItems = await ctx.db.select().from(orders).where(whereClause).orderBy(input.order === "asc" ? asc(orders.id) : desc(orders.id));
+    return {
+      items: allItems.map((item) => ({
+        ...item,
+        orderDate: formatToBrazilianDate(item.orderDate),
+      })),
+      pagination: {},
+    };
   }),
-
+  
   create: publicProcedure.input(CreateOrderSchema).mutation(async ({ ctx, input }) => {
     return await ctx.db.transaction(async (tx) => {
       const totalPrice = input.items.reduce((acc, item) => acc + item.quantity * Number(item.price), 0);
@@ -67,9 +123,15 @@ export const ordersRouter = createTRPCRouter({
       throw new Error("Order not found");
     }
 
+    const rawOrderDate = updated.orderDate as unknown;
+
     return {
       ...updated,
-      orderDate: formatToBrazilianDate(updated.orderDate),
+      orderDate: formatToBrazilianDate(
+        rawOrderDate instanceof Date
+          ? rawOrderDate.toISOString().slice(0, 10)
+          : String(rawOrderDate),
+      ),
     };
   }),
 
