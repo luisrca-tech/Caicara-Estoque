@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card"
+import { cn } from "~/lib/utils"
 import type { ProductCardProps } from "~/types/products/productCard.type" 
 
 const priceFormatter = new Intl.NumberFormat("pt-BR", {
@@ -32,6 +33,7 @@ export const ProductCard = ({
 }: ProductCardProps) => {
   const createdLabel =
     product.createdAt instanceof Date ? dateFormatter.format(product.createdAt) : ""
+    
   const quantityStatus =
     product.quantity === 0
       ? {
@@ -59,7 +61,7 @@ export const ProductCard = ({
             </CardDescription>
           </div>
           <span
-            className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${quantityStatus.className}`}
+            className={cn("inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold", quantityStatus.className)}
           >
             {quantityStatus.label}
           </span>
