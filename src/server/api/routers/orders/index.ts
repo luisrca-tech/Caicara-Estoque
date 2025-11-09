@@ -10,6 +10,12 @@ import { ListOrderSchema } from "./schema/listOrder.schema";
 
 export const ordersRouter = createTRPCRouter({
   list: publicProcedure.input(ListOrderSchema).query(async ({ ctx, input }) => {
+    const toBrazilianDate = (value: unknown) => {
+      const iso =
+        value instanceof Date ? value.toISOString().slice(0, 10) : String(value);
+      return formatToBrazilianDate(iso);
+    };
+
     const dateClauses = [];
     if (input.dateFrom) {
       dateClauses.push(gte(orders.orderDate, input.dateFrom.toISOString().slice(0, 10)));
@@ -28,7 +34,7 @@ export const ordersRouter = createTRPCRouter({
       return {
         items: actualItems.map((item) => ({
           ...item,
-          orderDate: formatToBrazilianDate(item.orderDate),
+          orderDate: toBrazilianDate(item.orderDate),
         })),
         pagination: {
           nextCursor,
@@ -51,7 +57,7 @@ export const ordersRouter = createTRPCRouter({
       return {
         items: items.map((item) => ({
           ...item,
-          orderDate: formatToBrazilianDate(item.orderDate),
+          orderDate: toBrazilianDate(item.orderDate),
         })),
         pagination: {
           page: input.page,
@@ -67,7 +73,7 @@ export const ordersRouter = createTRPCRouter({
     return {
       items: allItems.map((item) => ({
         ...item,
-        orderDate: formatToBrazilianDate(item.orderDate),
+        orderDate: toBrazilianDate(item.orderDate),
       })),
       pagination: {},
     };
