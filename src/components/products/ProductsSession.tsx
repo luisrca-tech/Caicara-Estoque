@@ -229,7 +229,7 @@ export const ProductsSection = () => {
       <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
         {isLoading && products.length === 0
           ? Array.from({ length: 6 }).map((_, index) => (
-              <Skeleton key={index} className="h-[260px] rounded-2xl border border-border/60" />
+              <Skeleton key={index} className="h-65 rounded-2xl border border-border/60" />
             ))
           : products.map((product) => (
               <ProductCard
