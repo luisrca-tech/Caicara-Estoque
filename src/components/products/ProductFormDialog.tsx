@@ -63,6 +63,16 @@ export const ProductFormDialog = ({
       quantity: data.quantity.trim(),
     }
     onSubmit(values)
+
+    if (data.id === undefined) {
+      reset({
+        id: undefined,
+        name: "",
+        description: "",
+        price: "",
+        quantity: "",
+      })
+    }
   }
 
   const handleOpenChange = (newOpen: boolean) => {
