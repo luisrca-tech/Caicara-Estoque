@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { useMemo } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -27,6 +28,14 @@ export const CompleteOrderDialog = ({
   isCompleting,
 }: CompleteOrderDialogProps) => {
   const open = Boolean(order);
+
+  const calculatedTotal = useMemo(() => {
+    if (!order?.items) return 0;
+    return order.items.reduce(
+      (acc, item) => acc + Number(item.price) * item.quantity,
+      0
+    );
+  }, [order?.items]);
 
   if (!order) return null;
 
@@ -66,7 +75,7 @@ export const CompleteOrderDialog = ({
                 Total do pedido:
               </span>
               <span className="font-bold text-primary text-xl">
-                {priceFormatter.format(Number(order.totalPrice))}
+                {priceFormatter.format(calculatedTotal)}
               </span>
             </div>
           </div>

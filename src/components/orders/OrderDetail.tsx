@@ -71,6 +71,14 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
     return orderStatus || order.status || "pending";
   }, [orderStatus, order]);
 
+  const calculatedTotal = useMemo(() => {
+    if (!order?.items) return 0;
+    return order.items.reduce(
+      (acc, item) => acc + Number(item.price) * item.quantity,
+      0
+    );
+  }, [order?.items]);
+
   const handleRemoveItem = (itemId: number) => {
     removeItem.mutate({ orderId, itemId });
   };
@@ -195,7 +203,7 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
               <div className="flex items-center justify-between font-bold text-xl">
                 <span>Total:</span>
                 <span className="text-primary">
-                  {priceFormatter.format(Number(order.totalPrice))}
+                  {priceFormatter.format(calculatedTotal)}
                 </span>
               </div>
             </div>

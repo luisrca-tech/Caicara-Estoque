@@ -59,7 +59,7 @@ export const OrdersList = ({ onCreateNew }: OrdersListProps) => {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <DateRangePicker onUpdate={handleDateUpdate} />
           {onCreateNew && (
-            <Button onClick={onCreateNew} className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto" onClick={onCreateNew}>
               Novo Pedido
             </Button>
           )}
