@@ -1,8 +1,9 @@
-import type { Product } from "./product.type"
+import type { Product } from "./product.type";
 
 export interface ProductDeleteDialogProps {
-  product: Product | null
-  onOpenChange: (open: boolean) => void
-  onConfirm: () => void
-  isDeleting?: boolean
+  product: Product | null;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  isDeleting?: boolean;
+  orderItemsCount?: number;
 }

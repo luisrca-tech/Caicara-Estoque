@@ -67,6 +67,13 @@ export const ProductsSection = () => {
   const { createProduct, updateProduct, deleteProduct, adjustQuantity } =
     useProducts();
 
+  const { data: orderItemsCountData } = api.products.getOrderItemsCount.useQuery(
+    { id: deleteTarget?.id ?? 0 },
+    { enabled: Boolean(deleteTarget?.id) }
+  );
+
+  const orderItemsCount = orderItemsCountData?.count ?? 0;
+
   const handleCreateClick = () => {
     setFormMode("create");
     setEditingProduct(null);
@@ -351,6 +358,7 @@ export const ProductsSection = () => {
             closeDeleteDialog();
           }
         }}
+        orderItemsCount={orderItemsCount}
         product={deleteTarget}
       />
     </section>

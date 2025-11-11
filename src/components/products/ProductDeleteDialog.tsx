@@ -18,8 +18,10 @@ export const ProductDeleteDialog = ({
   onOpenChange,
   onConfirm,
   isDeleting,
+  orderItemsCount = 0,
 }: ProductDeleteDialogProps) => {
   const open = Boolean(product);
+  const hasOrderItems = orderItemsCount > 0;
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
@@ -34,14 +36,33 @@ export const ProductDeleteDialog = ({
             ser desfeita.
           </DialogDescription>
         </DialogHeader>
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-muted-foreground text-sm">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-[2px] size-4 text-destructive" />
-            <p>
-              Excluir este produto o removerá das listagens e relatórios de
-              inventário. Considere definir a quantidade como zero se preferir
-              manter o registro.
-            </p>
+        <div className="space-y-3">
+          {hasOrderItems && (
+            <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4 text-sm text-yellow-700 dark:text-yellow-400">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-[2px] size-4 text-yellow-600 dark:text-yellow-500" />
+                <div className="space-y-1">
+                  <p className="font-semibold">
+                    Este produto está associado a {orderItemsCount}{" "}
+                    {orderItemsCount === 1 ? "pedido" : "pedidos"}.
+                  </p>
+                  <p>
+                    Ao excluir este produto, ele será removido automaticamente
+                    de todos os pedidos associados.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-muted-foreground text-sm">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-[2px] size-4 text-destructive" />
+              <p>
+                Excluir este produto o removerá das listagens e relatórios de
+                inventário. Considere definir a quantidade como zero se preferir
+                manter o registro.
+              </p>
+            </div>
           </div>
         </div>
         <DialogFooter>
