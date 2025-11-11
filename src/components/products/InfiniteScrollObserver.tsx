@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react";
 
 interface InfiniteScrollObserverProps {
-  onIntersect: () => void
-  hasMore: boolean
-  isLoading: boolean
+  onIntersect: () => void;
+  hasMore: boolean;
+  isLoading: boolean;
 }
 
 export const InfiniteScrollObserver = ({
@@ -13,41 +13,40 @@ export const InfiniteScrollObserver = ({
   hasMore,
   isLoading,
 }: InfiniteScrollObserverProps) => {
-  const sentinelRef = useRef<HTMLDivElement>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const sentinel = sentinelRef.current
-    if (!sentinel || !hasMore || isLoading) return
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !hasMore || isLoading) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        const [entry] = entries
+        const [entry] = entries;
         if (entry?.isIntersecting) {
-          onIntersect()
+          onIntersect();
         }
       },
       {
         rootMargin: "100px",
       }
-    )
+    );
 
-    observer.observe(sentinel)
+    observer.observe(sentinel);
 
     return () => {
-      observer.disconnect()
-    }
-  }, [onIntersect, hasMore, isLoading])
+      observer.disconnect();
+    };
+  }, [onIntersect, hasMore, isLoading]);
 
-  if (!hasMore) return null
+  if (!hasMore) return null;
 
   return (
-    <div ref={sentinelRef} className="h-4 w-full" aria-hidden="true">
+    <div aria-hidden="true" className="h-4 w-full" ref={sentinelRef}>
       {isLoading && (
-        <div className="text-center text-sm text-muted-foreground">
+        <div className="text-center text-muted-foreground text-sm">
           Carregando mais produtos...
         </div>
       )}
     </div>
-  )
-}
-
+  );
+};

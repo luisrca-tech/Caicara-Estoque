@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
-import { Button } from "~/components/ui/button"
+import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,13 +11,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "~/components/ui/dialog"
-import { Input } from "~/components/ui/input"
-import { Label } from "~/components/ui/label"
-import { Textarea } from "~/components/ui/textarea"
-import { productFormSchema } from "~/schema/productForm.schema"
-import type { ProductFormDialogProps } from "~/types/products/productFormDialog.type"
-import type { ProductFormSchema, ProductFormValues } from "~/types/products/productForm.type"
+} from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Textarea } from "~/components/ui/textarea";
+import { productFormSchema } from "~/schema/productForm.schema";
+import type {
+  ProductFormSchema,
+  ProductFormValues,
+} from "~/types/products/productForm.type";
+import type { ProductFormDialogProps } from "~/types/products/productFormDialog.type";
 
 export const ProductFormDialog = ({
   open,
@@ -52,7 +55,7 @@ export const ProductFormDialog = ({
           id: initialValues.id,
         }
       : undefined,
-  })
+  });
 
   const handleFormSubmit = (data: ProductFormSchema) => {
     const values: ProductFormValues = {
@@ -61,8 +64,8 @@ export const ProductFormDialog = ({
       description: data.description.trim() || "",
       price: data.price.trim(),
       quantity: data.quantity.trim(),
-    }
-    onSubmit(values)
+    };
+    onSubmit(values);
 
     if (data.id === undefined) {
       reset({
@@ -71,9 +74,9 @@ export const ProductFormDialog = ({
         description: "",
         price: "",
         quantity: "",
-      })
+      });
     }
-  }
+  };
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
@@ -83,17 +86,19 @@ export const ProductFormDialog = ({
         price: initialValues.price,
         quantity: initialValues.quantity,
         id: initialValues.id,
-      })
+      });
     }
-    onOpenChange(newOpen)
-  }
+    onOpenChange(newOpen);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto">
+    <Dialog onOpenChange={handleOpenChange} open={open}>
+      <DialogContent className="mx-2 max-h-[90dvh] overflow-y-auto lg:mx-0">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          {description ? <DialogDescription>{description}</DialogDescription> : null}
+          {description ? (
+            <DialogDescription>{description}</DialogDescription>
+          ) : null}
         </DialogHeader>
 
         <form className="space-y-6" onSubmit={handleSubmit(handleFormSubmit)}>
@@ -109,7 +114,9 @@ export const ProductFormDialog = ({
                 maxLength={256}
               />
               {errors.name ? (
-                <p className="text-xs text-destructive">{errors.name.message}</p>
+                <p className="text-destructive text-xs">
+                  {errors.name.message}
+                </p>
               ) : null}
             </div>
 
@@ -122,7 +129,9 @@ export const ProductFormDialog = ({
                 maxLength={256}
               />
               {errors.description ? (
-                <p className="text-xs text-destructive">{errors.description.message}</p>
+                <p className="text-destructive text-xs">
+                  {errors.description.message}
+                </p>
               ) : null}
             </div>
 
@@ -138,9 +147,11 @@ export const ProductFormDialog = ({
                   {...register("price")}
                 />
                 {errors.price ? (
-                  <p className="text-xs text-destructive">{errors.price.message}</p>
+                  <p className="text-destructive text-xs">
+                    {errors.price.message}
+                  </p>
                 ) : (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     Use vírgula ou ponto para decimais, ex: 9,90
                   </p>
                 )}
@@ -157,22 +168,28 @@ export const ProductFormDialog = ({
                   {...register("quantity")}
                 />
                 {errors.quantity ? (
-                  <p className="text-xs text-destructive">{errors.quantity.message}</p>
+                  <p className="text-destructive text-xs">
+                    {errors.quantity.message}
+                  </p>
                 ) : null}
               </div>
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" type="button" onClick={() => handleOpenChange(false)}>
+            <Button
+              onClick={() => handleOpenChange(false)}
+              type="button"
+              variant="outline"
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button disabled={isSubmitting} type="submit">
               {isSubmitting ? "Salvando..." : submitLabel}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};

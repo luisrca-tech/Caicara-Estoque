@@ -18,6 +18,7 @@ export const useOrders = () => {
     onSuccess: () => {
       toast.success("Pedido atualizado com sucesso");
       trpcUtils.orders.list.invalidate();
+      trpcUtils.orders.getById.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao atualizar pedido");
@@ -34,5 +35,39 @@ export const useOrders = () => {
     },
   });
 
-  return { createOrder, updateOrder, deleteOrder };
+  const addItem = api.orders.addItem.useMutation({
+    onSuccess: () => {
+      toast.success("Produto adicionado ao pedido");
+      trpcUtils.orders.getById.invalidate();
+      trpcUtils.orders.list.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao adicionar produto");
+    },
+  });
+
+  const removeItem = api.orders.removeItem.useMutation({
+    onSuccess: () => {
+      toast.success("Produto removido do pedido");
+      trpcUtils.orders.getById.invalidate();
+      trpcUtils.orders.list.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao remover produto");
+    },
+  });
+
+  const completeOrder = api.orders.completeOrder.useMutation({
+    onSuccess: () => {
+      toast.success("Pedido completado com sucesso! Produtos adicionados ao estoque.");
+      trpcUtils.orders.getById.invalidate();
+      trpcUtils.orders.list.invalidate();
+      trpcUtils.products.list.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao completar pedido");
+    },
+  });
+
+  return { createOrder, updateOrder, deleteOrder, addItem, removeItem, completeOrder };
 }

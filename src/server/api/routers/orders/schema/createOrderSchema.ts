@@ -9,5 +9,5 @@ export const CreateOrderSchema = z.object({
     productId: z.number().int().positive().min(1, { message: "Product ID must be greater than 0" }),
     quantity: ParseQuantitySchema,
     price: ParsePriceSchema,
-  })),
+  })).default([]),
 });

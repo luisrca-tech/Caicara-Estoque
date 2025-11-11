@@ -23,4 +23,3 @@ export const useBreakpoint = (breakpoint: number = 768) => {
 
   return isMobile
 }
-
