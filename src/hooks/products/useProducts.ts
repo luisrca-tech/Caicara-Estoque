@@ -8,6 +8,7 @@ export const useProducts = () => {
     onSuccess: () => {
       toast.success(`Produto criado com sucesso`);
       trpcUtils.products.list.invalidate();
+      trpcUtils.products.listAll.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao criar produto");
@@ -18,6 +19,7 @@ export const useProducts = () => {
     onSuccess: () => {
       toast.success(`Produto atualizado com sucesso`);
       trpcUtils.products.list.invalidate();
+      trpcUtils.products.listAll.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao atualizar produto");
@@ -28,6 +30,7 @@ export const useProducts = () => {
     onSuccess: () => {
       toast.success(`Produto excluído com sucesso`);
       trpcUtils.products.list.invalidate();
+      trpcUtils.products.listAll.invalidate();
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao excluir produto");
