@@ -3,7 +3,7 @@ import { api } from "~/trpc/react";
 
 export const useProducts = () => {
   const trpcUtils = api.useUtils();
-  
+
   const createProduct = api.products.create.useMutation({
     onSuccess: () => {
       toast.success(`Produto criado com sucesso`);
@@ -35,8 +35,19 @@ export const useProducts = () => {
   });
 
   const adjustQuantity = api.products.adjustQuantity.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       trpcUtils.products.list.invalidate();
+      trpcUtils.products.listAll.setData(undefined, (prev) => {
+        if (!prev || !data) {
+          return prev;
+        }
+
+        const { id, quantity } = data;
+
+        return prev.map((product) =>
+          product.id === id ? { ...product, quantity } : product
+        );
+      });
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao ajustar quantidade");

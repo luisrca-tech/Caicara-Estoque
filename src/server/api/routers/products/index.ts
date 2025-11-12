@@ -219,9 +219,16 @@ export const productsRouter = createTRPCRouter({
 
       const newQuantity = Math.max(0, currentProduct.quantity + input.delta);
 
-      return await ctx.db
+      const [updatedProduct] = await ctx.db
         .update(products)
         .set({ quantity: newQuantity })
-        .where(eq(products.id, input.id));
+        .where(eq(products.id, input.id))
+        .returning({ id: products.id, quantity: products.quantity });
+
+      if (!updatedProduct) {
+        throw new Error("Failed to update product quantity");
+      }
+
+      return updatedProduct;
     }),
 });
