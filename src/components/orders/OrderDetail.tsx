@@ -95,6 +95,7 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
   const handleCompleteOrder = () => {
     completeOrder.mutate({ orderId });
     setShowCompleteDialog(false);
+    router.push("/pedidos");
   };
 
   if (isLoadingOrder) {

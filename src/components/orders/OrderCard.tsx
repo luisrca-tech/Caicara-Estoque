@@ -38,11 +38,48 @@ const statusConfig = {
   },
 } as const;
 
+const formatOrderDate = (value: unknown): string => {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  let isoLike = "";
+
+  if (trimmed.includes("/")) {
+    const [day, month, year] = trimmed.split("/");
+    if (day && month && year) {
+      const fullYear = year.length === 2 ? `20${year}` : year.padStart(4, "0");
+      isoLike = `${fullYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+  } else if (trimmed.includes("-")) {
+    isoLike = trimmed;
+  }
+
+  const parsed = isoLike ? new Date(isoLike) : new Date(trimmed);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return trimmed;
+  }
+
+  return parsed.toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
 export const OrderCard = ({ order, onDelete, isDeleting }: OrderCardProps) => {
   const router = useRouter();
   const status =
     statusConfig[order.status as keyof typeof statusConfig] ??
     statusConfig.pending;
+
+  const formattedOrderDate = formatOrderDate(order.orderDate);
 
   const handleClick = () => {
     router.push(`/pedidos/${order.id}`);
@@ -56,16 +93,16 @@ export const OrderCard = ({ order, onDelete, isDeleting }: OrderCardProps) => {
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <CardTitle className="font-semibold text-xl truncate">
+            <CardTitle className="truncate font-semibold text-xl">
               Pedido #{order.id}
             </CardTitle>
             <CardDescription className="mt-1 text-muted-foreground text-xs">
-              {order.orderDate}
+              {formattedOrderDate}
             </CardDescription>
           </div>
           <span
             className={cn(
-              "shrink-0 inline-flex items-center rounded-full px-2.5 py-1 font-semibold text-xs whitespace-nowrap",
+              "inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-1 font-semibold text-xs",
               status.className
             )}
           >
@@ -75,24 +112,25 @@ export const OrderCard = ({ order, onDelete, isDeleting }: OrderCardProps) => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <p className="font-bold text-2xl sm:text-3xl text-primary break-words">
+          <p className="wrap-break-word font-bold text-2xl text-primary sm:text-3xl">
             {priceFormatter.format(Number(order.totalPrice))}
           </p>
         </div>
       </CardContent>
       <CardFooter className="flex items-center justify-between gap-2">
         <Button
+          className="flex-1 sm:flex-initial"
           onClick={(e) => {
             e.stopPropagation();
             handleClick();
           }}
           size="sm"
           variant="outline"
-          className="flex-1 sm:flex-initial"
         >
           Ver detalhes
         </Button>
         <Button
+          className="shrink-0"
           disabled={isDeleting}
           onClick={(e) => {
             e.stopPropagation();
@@ -100,7 +138,6 @@ export const OrderCard = ({ order, onDelete, isDeleting }: OrderCardProps) => {
           }}
           size="sm"
           variant="destructive"
-          className="shrink-0"
         >
           <Trash2 className="h-4 w-4" />
         </Button>
