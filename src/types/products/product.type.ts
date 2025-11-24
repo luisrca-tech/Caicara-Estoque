@@ -1,3 +1,3 @@
-import type { RouterOutputs } from "~/trpc/react"
+import type { RouterOutputs } from "~/trpc/react";
 
-export type Product = RouterOutputs["products"]["list"][number]
+export type Product = RouterOutputs["products"]["list"]["items"][number];
