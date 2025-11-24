@@ -28,12 +28,29 @@ export const useProducts = () => {
 
   const deleteProduct = api.products.delete.useMutation({
     onSuccess: () => {
-      toast.success(`Produto excluído com sucesso`);
+      toast.success(`Produto desabilitado com sucesso`);
       trpcUtils.products.list.invalidate();
       trpcUtils.products.listAll.invalidate();
+      trpcUtils.products.listDisabled.invalidate();
+      trpcUtils.orders.list.invalidate();
+      trpcUtils.orders.getById.invalidate();
     },
     onError: (error) => {
-      toast.error(error.message || "Erro ao excluir produto");
+      toast.error(error.message || "Erro ao desabilitar produto");
+    },
+  });
+
+  const restoreProduct = api.products.restore.useMutation({
+    onSuccess: () => {
+      toast.success(`Produto habilitado com sucesso`);
+      trpcUtils.products.list.invalidate();
+      trpcUtils.products.listAll.invalidate();
+      trpcUtils.products.listDisabled.invalidate();
+      trpcUtils.orders.list.invalidate();
+      trpcUtils.orders.getById.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao habilitar produto");
     },
   });
 
@@ -57,5 +74,11 @@ export const useProducts = () => {
     },
   });
 
-  return { createProduct, updateProduct, deleteProduct, adjustQuantity };
+  return {
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    restoreProduct,
+    adjustQuantity,
+  };
 };
