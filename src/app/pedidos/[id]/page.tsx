@@ -23,8 +23,8 @@ export default async function OrderPage({ params }: OrderDetailPageProps) {
   if (Number.isNaN(orderId)) {
     return (
       <HydrateClient>
-        <main className="flex h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)] flex-col overflow-hidden bg-linear-to-br from-background via-background to-muted/40 text-foreground">
-          <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col px-4 py-8 lg:px-0">
+        <main className="flex h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)] flex-col overflow-y-auto bg-linear-to-br from-background via-background to-muted/40 text-foreground md:overflow-hidden">
+          <div className="mx-auto flex w-full max-w-7xl flex-col px-4 py-8 md:h-full md:min-h-0 lg:px-0">
             <div className="flex flex-col items-center justify-center py-12">
               <p className="text-muted-foreground">Pedido inválido</p>
             </div>
@@ -36,8 +36,8 @@ export default async function OrderPage({ params }: OrderDetailPageProps) {
 
   return (
     <HydrateClient>
-      <main className="flex h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)] flex-col overflow-hidden bg-linear-to-br from-background via-background to-muted/40 text-foreground">
-        <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col px-4 py-8 lg:px-0">
+      <main className="flex h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)] flex-col overflow-y-auto bg-linear-to-br from-background via-background to-muted/40 text-foreground md:overflow-hidden">
+        <div className="mx-auto flex w-full max-w-7xl flex-col px-4 py-8 md:h-full md:min-h-0 lg:px-0">
           <OrderDetailPage orderId={orderId} />
         </div>
       </main>
