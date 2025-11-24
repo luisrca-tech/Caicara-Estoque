@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, count, desc, eq, gt, ilike, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, ilike, inArray, or } from "drizzle-orm";
 import { z } from "zod";
-import { orderItems, products } from "~/server/db/schema";
+import { orderItems, orders, products } from "~/server/db/schema";
 import { createTRPCRouter, publicProcedure } from "../../trpc";
 import { CreateProductSchema } from "./schema/createProduct.schema";
 import { ListProductsSchema } from "./schema/listProducts.schema";
@@ -12,6 +12,7 @@ export const productsRouter = createTRPCRouter({
     const items = await ctx.db
       .select()
       .from(products)
+      .where(eq(products.isDisabled, false))
       .orderBy(desc(products.createdAt));
     return items;
   }),
@@ -32,8 +33,12 @@ export const productsRouter = createTRPCRouter({
 
       if (input.cursor !== undefined) {
         const whereConditions = searchCondition
-          ? and(searchCondition, gt(products.id, input.cursor))
-          : gt(products.id, input.cursor);
+          ? and(
+              searchCondition,
+              eq(products.isDisabled, false),
+              gt(products.id, input.cursor)
+            )
+          : and(eq(products.isDisabled, false), gt(products.id, input.cursor));
 
         const items = await ctx.db
           .select()
@@ -61,18 +66,22 @@ export const productsRouter = createTRPCRouter({
       if (input.page !== undefined) {
         const offset = (input.page - 1) * input.limit;
 
+        const whereCondition = searchCondition
+          ? and(searchCondition, eq(products.isDisabled, false))
+          : eq(products.isDisabled, false);
+
         const [items, totalResult] = await Promise.all([
           ctx.db
             .select()
             .from(products)
-            .where(searchCondition)
+            .where(whereCondition)
             .orderBy(desc(products.createdAt))
             .limit(input.limit)
             .offset(offset),
           ctx.db
             .select({ count: count() })
             .from(products)
-            .where(searchCondition),
+            .where(whereCondition),
         ]);
 
         const total = totalResult[0]?.count ?? 0;
@@ -90,10 +99,14 @@ export const productsRouter = createTRPCRouter({
         };
       }
 
+      const whereCondition = searchCondition
+        ? and(searchCondition, eq(products.isDisabled, false))
+        : eq(products.isDisabled, false);
+
       const allItems = await ctx.db
         .select()
         .from(products)
-        .where(searchCondition)
+        .where(whereCondition)
         .orderBy(desc(products.createdAt));
 
       return {
@@ -128,12 +141,20 @@ export const productsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const result = await ctx.db
-        .select({ count: count() })
+      const distinctOrders = await ctx.db
+        .selectDistinct({ orderId: orderItems.orderId })
         .from(orderItems)
-        .where(eq(orderItems.productId, input.id));
+        .innerJoin(orders, eq(orderItems.orderId, orders.id))
+        .innerJoin(products, eq(orderItems.productId, products.id))
+        .where(
+          and(
+            eq(orderItems.productId, input.id),
+            eq(orders.status, "pending"),
+            eq(products.isDisabled, false)
+          )
+        );
 
-      return { count: result[0]?.count ?? 0 };
+      return { count: distinctOrders.length };
     }),
 
   delete: publicProcedure
@@ -147,8 +168,8 @@ export const productsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      try {
-        const [product] = await ctx.db
+      return await ctx.db.transaction(async (tx) => {
+        const [product] = await tx
           .select({ id: products.id })
           .from(products)
           .where(eq(products.id, input.id));
@@ -160,40 +181,190 @@ export const productsRouter = createTRPCRouter({
           });
         }
 
-        await ctx.db
-          .delete(orderItems)
+        const affectedOrderItems = await tx
+          .select({
+            orderId: orderItems.orderId,
+            orderStatus: orders.status,
+          })
+          .from(orderItems)
+          .innerJoin(orders, eq(orderItems.orderId, orders.id))
           .where(eq(orderItems.productId, input.id));
 
-        await ctx.db.delete(products).where(eq(products.id, input.id));
+        const pendingOrCancelledOrderIds = affectedOrderItems
+          .filter(
+            (item) =>
+              item.orderStatus === "pending" || item.orderStatus === "cancelled"
+          )
+          .map((item) => item.orderId);
+
+        const uniquePendingOrCancelledOrderIds = [
+          ...new Set(pendingOrCancelledOrderIds),
+        ];
+
+        if (uniquePendingOrCancelledOrderIds.length > 0) {
+          await tx
+            .delete(orderItems)
+            .where(
+              and(
+                eq(orderItems.productId, input.id),
+                inArray(orderItems.orderId, uniquePendingOrCancelledOrderIds)
+              )
+            );
+
+          for (const orderId of uniquePendingOrCancelledOrderIds) {
+            const remainingItems = await tx
+              .select()
+              .from(orderItems)
+              .where(eq(orderItems.orderId, orderId));
+
+            const totalPrice = remainingItems.reduce(
+              (acc, item) => acc + Number(item.price) * item.quantity,
+              0
+            );
+
+            await tx
+              .update(orders)
+              .set({ totalPrice: totalPrice.toFixed(2) })
+              .where(eq(orders.id, orderId));
+          }
+        }
+
+        await tx
+          .update(products)
+          .set({ isDisabled: true })
+          .where(eq(products.id, input.id));
+
         return { success: true };
-      } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
+      });
+    }),
 
-        if (
-          error instanceof Error &&
-          error.message.includes("foreign key constraint")
-        ) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message:
-              "Não é possível excluir este produto pois ele está associado a outros registros no sistema.",
-          });
-        }
+  restore: publicProcedure
+    .input(
+      z.object({
+        id: z
+          .number()
+          .int()
+          .positive()
+          .min(1, { message: "ID must be greater than 0" }),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [product] = await ctx.db
+        .select({ id: products.id })
+        .from(products)
+        .where(eq(products.id, input.id));
 
-        if (error instanceof Error) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Erro ao excluir produto. Tente novamente mais tarde.",
-          });
-        }
-
+      if (!product) {
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erro desconhecido ao excluir produto.",
+          code: "NOT_FOUND",
+          message: "Produto não encontrado",
         });
       }
+
+      await ctx.db
+        .update(products)
+        .set({ isDisabled: false })
+        .where(eq(products.id, input.id));
+
+      return { success: true };
+    }),
+
+  listDisabled: publicProcedure
+    .input(ListProductsSchema)
+    .query(async ({ ctx, input }) => {
+      const searchPattern = input.search?.trim()
+        ? `%${input.search.trim()}%`
+        : null;
+
+      const searchCondition = searchPattern
+        ? or(
+            ilike(products.name, searchPattern),
+            ilike(products.description, searchPattern)
+          )
+        : undefined;
+
+      if (input.cursor !== undefined) {
+        const whereConditions = searchCondition
+          ? and(
+              searchCondition,
+              eq(products.isDisabled, true),
+              gt(products.id, input.cursor)
+            )
+          : and(eq(products.isDisabled, true), gt(products.id, input.cursor));
+
+        const items = await ctx.db
+          .select()
+          .from(products)
+          .where(whereConditions)
+          .orderBy(asc(products.id))
+          .limit(input.limit + 1);
+
+        const hasMore = items.length > input.limit;
+        const actualItems = hasMore ? items.slice(0, -1) : items;
+        const nextCursor =
+          hasMore && actualItems.length > 0
+            ? actualItems[actualItems.length - 1]?.id ?? null
+            : null;
+
+        return {
+          items: actualItems,
+          pagination: {
+            nextCursor,
+            hasMore,
+          },
+        };
+      }
+
+      if (input.page !== undefined) {
+        const offset = (input.page - 1) * input.limit;
+
+        const whereCondition = searchCondition
+          ? and(searchCondition, eq(products.isDisabled, true))
+          : eq(products.isDisabled, true);
+
+        const [items, totalResult] = await Promise.all([
+          ctx.db
+            .select()
+            .from(products)
+            .where(whereCondition)
+            .orderBy(desc(products.createdAt))
+            .limit(input.limit)
+            .offset(offset),
+          ctx.db
+            .select({ count: count() })
+            .from(products)
+            .where(whereCondition),
+        ]);
+
+        const total = totalResult[0]?.count ?? 0;
+        const totalPages = Math.ceil(total / input.limit);
+
+        return {
+          items,
+          pagination: {
+            page: input.page,
+            limit: input.limit,
+            total,
+            totalPages,
+            hasMore: input.page < totalPages,
+          },
+        };
+      }
+
+      const whereCondition = searchCondition
+        ? and(searchCondition, eq(products.isDisabled, true))
+        : eq(products.isDisabled, true);
+
+      const allItems = await ctx.db
+        .select()
+        .from(products)
+        .where(whereCondition)
+        .orderBy(desc(products.createdAt));
+
+      return {
+        items: allItems,
+        pagination: {},
+      };
     }),
 
   adjustQuantity: publicProcedure
