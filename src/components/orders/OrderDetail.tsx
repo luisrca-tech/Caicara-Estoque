@@ -29,7 +29,8 @@ interface OrderDetailProps {
 export const OrderDetail = ({ orderId }: OrderDetailProps) => {
   const router = useRouter();
   const { data: order, isLoading: isLoadingOrder } = useOrder(orderId);
-  const { addItem, removeItem, completeOrder, updateOrder } = useOrders();
+  const { addItem, removeItem, completeOrder, updateOrder, updateItem } =
+    useOrders();
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
 
   const [orderDate, setOrderDate] = useQueryState("date", {
@@ -123,7 +124,7 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-6">
+    <div className="flex flex-col gap-6 md:h-full md:min-h-0">
       <div className="shrink-0">
         <div className="flex items-center justify-between">
           <div>
@@ -135,8 +136,8 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
         </div>
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-6 lg:grid-cols-2">
-        <div className="flex min-h-0 flex-col space-y-6">
+      <div className="grid gap-6 md:min-h-0 md:flex-1 lg:grid-cols-2">
+        <div className="flex flex-col space-y-6 md:min-h-0">
           <div className="shrink-0 space-y-4 rounded-lg border border-border/60 bg-card p-6">
             <h2 className="font-semibold text-xl">Informações do Pedido</h2>
             <div className="space-y-4">
@@ -179,7 +180,7 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
             </div>
           </div>
 
-          <div className="flex min-h-0 flex-col space-y-4 rounded-lg border border-border/60 bg-card p-6">
+          <div className="flex flex-col space-y-4 rounded-lg border border-border/60 bg-card p-6 md:min-h-0">
             <h2 className="shrink-0 font-semibold text-xl">
               Produtos no Pedido
             </h2>
@@ -188,7 +189,7 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
                 Nenhum produto adicionado ainda
               </p>
             ) : (
-              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-2 py-1">
+              <div className="space-y-4 px-2 py-1 md:min-h-0 md:flex-1 md:overflow-y-auto">
                 {order.items.map((item) => (
                   <OrderItemCard
                     canRemove={order.status === "pending"}
@@ -222,9 +223,14 @@ export const OrderDetail = ({ orderId }: OrderDetailProps) => {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-col">
+        <div className="flex flex-col md:min-h-0">
           {order.status === "pending" ? (
-            <OrderAddProducts addItem={addItem} orderId={order.id} />
+            <OrderAddProducts
+              addItem={addItem}
+              orderId={order.id}
+              removeItem={removeItem}
+              updateItem={updateItem}
+            />
           ) : (
             <OrderCompletedSummary order={order} />
           )}

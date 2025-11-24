@@ -6,6 +6,7 @@ import { InfiniteScrollObserver } from "~/components/products/InfiniteScrollObse
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
+import { useOrder } from "~/hooks/orders/useOrder";
 import type { useOrders } from "~/hooks/orders/useOrders";
 import { useProductsInfinite } from "~/hooks/products/useProductsInfinite";
 import { useProductsPagination } from "~/hooks/products/useProductsPagination";
@@ -18,16 +19,23 @@ const priceFormatter = new Intl.NumberFormat("pt-BR", {
 });
 
 type AddItemMutation = ReturnType<typeof useOrders>["addItem"];
+type UpdateItemMutation = ReturnType<typeof useOrders>["updateItem"];
+type RemoveItemMutation = ReturnType<typeof useOrders>["removeItem"];
 
 interface OrderAddProductsProps {
   orderId: number;
   addItem: AddItemMutation;
+  updateItem: UpdateItemMutation;
+  removeItem: RemoveItemMutation;
 }
 
 export const OrderAddProducts = ({
   orderId,
   addItem,
+  updateItem,
+  removeItem,
 }: OrderAddProductsProps) => {
+  const { data: order } = useOrder(orderId);
   const [searchTerm, setSearchTerm] = useQueryState("order-product-search", {
     defaultValue: "",
     clearOnDefault: true,
@@ -43,9 +51,43 @@ export const OrderAddProducts = ({
     ? infinite.isLoading
     : pagination.isLoading;
 
-  const [selectedProducts, setSelectedProducts] = useState<Map<number, number>>(
-    new Map()
-  );
+  const existingItemsMap = useMemo(() => {
+    const map = new Map<number, { quantity: number; itemId: number }>();
+    if (order?.items) {
+      order.items.forEach((item) => {
+        map.set(item.productId, { quantity: item.quantity, itemId: item.id });
+      });
+    }
+    return map;
+  }, [order?.items]);
+
+  const [userModifications, setUserModifications] = useState<
+    Map<number, number>
+  >(new Map());
+
+  const cleanedUserModifications = useMemo(() => {
+    const cleaned = new Map<number, number>();
+    userModifications.forEach((quantity, productId) => {
+      if (
+        existingItemsMap.has(productId) ||
+        products.some((p) => p.id === productId)
+      ) {
+        cleaned.set(productId, quantity);
+      }
+    });
+    return cleaned;
+  }, [userModifications, existingItemsMap, products]);
+
+  const selectedProducts = useMemo(() => {
+    const merged = new Map<number, number>();
+    existingItemsMap.forEach((value, productId) => {
+      merged.set(productId, value.quantity);
+    });
+    cleanedUserModifications.forEach((quantity, productId) => {
+      merged.set(productId, quantity);
+    });
+    return merged;
+  }, [existingItemsMap, cleanedUserModifications]);
 
   const selectedProductsTotal = useMemo(() => {
     return Array.from(selectedProducts.entries()).reduce(
@@ -59,10 +101,11 @@ export const OrderAddProducts = ({
   }, [products, selectedProducts]);
 
   const handleProductSelect = (productId: number, selected: boolean) => {
-    setSelectedProducts((prev) => {
+    setUserModifications((prev) => {
       const next = new Map(prev);
       if (selected) {
-        next.set(productId, 1);
+        const existingQuantity = existingItemsMap.get(productId)?.quantity ?? 1;
+        next.set(productId, existingQuantity);
       } else {
         next.delete(productId);
       }
@@ -71,7 +114,7 @@ export const OrderAddProducts = ({
   };
 
   const handleQuantityChange = (productId: number, quantity: number) => {
-    setSelectedProducts((prev) => {
+    setUserModifications((prev) => {
       const next = new Map(prev);
       next.set(productId, quantity);
       return next;
@@ -79,24 +122,53 @@ export const OrderAddProducts = ({
   };
 
   const handleAddProducts = () => {
-    if (selectedProducts.size === 0) return;
+    const promises: Promise<unknown>[] = [];
 
-    const promises = Array.from(selectedProducts.entries()).map(
-      ([productId, quantity]) =>
-        addItem.mutateAsync({
-          orderId,
-          productId,
-          quantity,
-        })
-    );
+    selectedProducts.forEach((quantity, productId) => {
+      if (!existingItemsMap.has(productId)) {
+        promises.push(
+          addItem.mutateAsync({
+            orderId,
+            productId,
+            quantity,
+          })
+        );
+      }
+    });
+
+    selectedProducts.forEach((quantity, productId) => {
+      const existingItem = existingItemsMap.get(productId);
+      if (existingItem && existingItem.quantity !== quantity) {
+        promises.push(
+          updateItem.mutateAsync({
+            orderId,
+            itemId: existingItem.itemId,
+            quantity,
+          })
+        );
+      }
+    });
+
+    existingItemsMap.forEach(({ itemId }, productId) => {
+      if (!selectedProducts.has(productId)) {
+        promises.push(
+          removeItem.mutateAsync({
+            orderId,
+            itemId,
+          })
+        );
+      }
+    });
+
+    if (promises.length === 0) return;
 
     Promise.all(promises).then(() => {
-      setSelectedProducts(new Map());
+      setUserModifications(new Map());
     });
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col space-y-4 rounded-lg border border-border/60 bg-card p-6">
+    <div className="flex flex-col space-y-4 rounded-lg border border-border/60 bg-card p-6 md:h-full md:min-h-0">
       <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="font-semibold text-xl">Adicionar Produtos</h2>
         <div className="w-full sm:w-80">
@@ -122,12 +194,12 @@ export const OrderAddProducts = ({
           Nenhum produto encontrado
         </p>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-2 py-1">
+        <div className="flex flex-col md:min-h-0 md:flex-1">
+          <div className="space-y-4 px-2 py-1 md:min-h-0 md:flex-1 md:overflow-y-auto">
             {products.map((product) => (
               <ProductSelectionCard
                 isSelected={selectedProducts.has(product.id)}
-                key={product.id}
+                key={`${product.id}-${selectedProducts.get(product.id) ?? 0}`}
                 onQuantityChange={handleQuantityChange}
                 onSelect={handleProductSelect}
                 product={product}
@@ -156,12 +228,18 @@ export const OrderAddProducts = ({
               </div>
               <Button
                 className="w-full"
-                disabled={addItem.isPending}
+                disabled={
+                  addItem.isPending ||
+                  updateItem.isPending ||
+                  removeItem.isPending
+                }
                 onClick={handleAddProducts}
               >
-                {addItem.isPending
-                  ? "Adicionando..."
-                  : `Adicionar ${selectedProducts.size} produto(s)`}
+                {addItem.isPending ||
+                updateItem.isPending ||
+                removeItem.isPending
+                  ? "Salvando..."
+                  : "Salvar alterações"}
               </Button>
             </div>
           )}

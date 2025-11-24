@@ -13,6 +13,7 @@ import type { DateFilter } from "~/types/dateFilter.type";
 import type { Order } from "~/types/orders/order.type";
 import { DateRangePicker } from "./DateRangePicker";
 import { OrderCard } from "./OrderCard";
+import { OrderDeleteDialog } from "./OrderDeleteDialog";
 
 interface OrdersListProps {
   onCreateNew?: () => void;
@@ -37,11 +38,26 @@ export const OrdersList = ({ onCreateNew }: OrdersListProps) => {
   const orders = isMobile ? infinite.orders : pagination.orders;
   const isLoading = isMobile ? infinite.isLoading : pagination.isLoading;
   const { deleteOrder } = useOrders();
+  const [deleteTarget, setDeleteTarget] = useState<Order | null>(null);
 
   const handleDelete = (order: Order) => {
-    if (confirm(`Tem certeza que deseja excluir o pedido #${order.id}?`)) {
-      deleteOrder.mutate({ id: order.id });
-    }
+    setDeleteTarget(order);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deleteTarget) return;
+    deleteOrder.mutate(
+      { id: deleteTarget.id },
+      {
+        onSuccess: () => {
+          setDeleteTarget(null);
+        },
+      }
+    );
+  };
+
+  const closeDeleteDialog = () => {
+    setDeleteTarget(null);
   };
 
   const handleDateUpdate = (values: { dateFrom?: Date; dateTo?: Date }) => {
@@ -121,6 +137,17 @@ export const OrdersList = ({ onCreateNew }: OrdersListProps) => {
           )}
         </>
       )}
+
+      <OrderDeleteDialog
+        isDeleting={deleteOrder.isPending}
+        onConfirm={handleDeleteConfirm}
+        onOpenChange={(open: boolean) => {
+          if (!open) {
+            closeDeleteDialog();
+          }
+        }}
+        order={deleteTarget}
+      />
     </div>
   );
 };
