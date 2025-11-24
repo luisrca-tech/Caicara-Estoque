@@ -11,6 +11,8 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useProducts } from "~/hooks/products/useProducts";
+import { useProductsDisabledInfinite } from "~/hooks/products/useProductsDisabledInfinite";
+import { useProductsDisabledPagination } from "~/hooks/products/useProductsDisabledPagination";
 import { useProductsInfinite } from "~/hooks/products/useProductsInfinite";
 import { useProductsPagination } from "~/hooks/products/useProductsPagination";
 import { useBreakpoint } from "~/hooks/useBreakpoint";
@@ -42,6 +44,7 @@ export const ProductsSection = () => {
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [showDisabled, setShowDisabled] = useState(false);
 
   const deferredSearchTerm = useDeferredValue(searchTerm ?? "");
 
@@ -58,19 +61,52 @@ export const ProductsSection = () => {
     9
   );
   const infinite = useProductsInfinite(deferredSearchTerm, isMobile);
+  const disabledPagination = useProductsDisabledPagination(
+    deferredSearchTerm,
+    isMobile,
+    page,
+    9
+  );
+  const disabledInfinite = useProductsDisabledInfinite(
+    deferredSearchTerm,
+    isMobile
+  );
   const { data: allProductsData } = api.products.listAll.useQuery();
 
-  const products = isMobile ? infinite.products : pagination.products;
-  const isLoading = isMobile ? infinite.isLoading : pagination.isLoading;
-  const isError = isMobile ? infinite.isError : pagination.isError;
+  const activeProducts = isMobile ? infinite.products : pagination.products;
+  const disabledProducts = isMobile
+    ? disabledInfinite.products
+    : disabledPagination.products;
 
-  const { createProduct, updateProduct, deleteProduct, adjustQuantity } =
-    useProducts();
+  const products = showDisabled ? disabledProducts : activeProducts;
+  const isLoading = showDisabled
+    ? isMobile
+      ? disabledInfinite.isLoading
+      : disabledPagination.isLoading
+    : isMobile
+    ? infinite.isLoading
+    : pagination.isLoading;
+  const isError = showDisabled
+    ? isMobile
+      ? disabledInfinite.isError
+      : disabledPagination.isError
+    : isMobile
+    ? infinite.isError
+    : pagination.isError;
 
-  const { data: orderItemsCountData } = api.products.getOrderItemsCount.useQuery(
-    { id: deleteTarget?.id ?? 0 },
-    { enabled: Boolean(deleteTarget?.id) }
-  );
+  const {
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    restoreProduct,
+    adjustQuantity,
+  } = useProducts();
+
+  const { data: orderItemsCountData } =
+    api.products.getOrderItemsCount.useQuery(
+      { id: deleteTarget?.id ?? 0 },
+      { enabled: Boolean(deleteTarget?.id) }
+    );
 
   const orderItemsCount = orderItemsCountData?.count ?? 0;
 
@@ -154,10 +190,24 @@ export const ProductsSection = () => {
   const isSubmitting =
     formMode === "create" ? createProduct.isPending : updateProduct.isPending;
   const isDeleting = deleteProduct.isPending;
+  const isRestoring = restoreProduct.isPending;
   const isAdjustingQuantity = adjustQuantity.isPending;
 
   const handleAdjustQuantity = (productId: number, delta: number) => {
     adjustQuantity.mutate({ id: productId, delta });
+  };
+
+  const handleRestoreClick = (product: Product) => {
+    restoreProduct.mutate(
+      { id: product.id },
+      {
+        onSuccess: () => {
+          if (products.length === 1 && page > 1) {
+            setPage(page - 1);
+          }
+        },
+      }
+    );
   };
 
   const statsSource = allProductsData ?? [];
@@ -240,7 +290,15 @@ export const ProductsSection = () => {
           />
         </div>
         <div className="flex items-center gap-3">
-          <Button onClick={handleCreateClick}>Novo Produto</Button>
+          <Button
+            onClick={() => setShowDisabled(!showDisabled)}
+            variant={showDisabled ? "default" : "outline"}
+          >
+            {showDisabled ? "Ver produtos ativos" : "Itens Desabilitados"}
+          </Button>
+          {!showDisabled && (
+            <Button onClick={handleCreateClick}>Novo Produto</Button>
+          )}
         </div>
       </div>
 
@@ -262,11 +320,16 @@ export const ProductsSection = () => {
               <ProductCard
                 isAdjustingQuantity={isAdjustingQuantity}
                 isDeleting={isDeleting && deleteTarget?.id === product.id}
+                isRestoring={isRestoring}
                 key={product.id}
-                onAdjustQuantity={handleAdjustQuantity}
-                onDelete={handleDeleteClick}
-                onEdit={handleEditClick}
+                onAdjustQuantity={
+                  showDisabled ? undefined : handleAdjustQuantity
+                }
+                onDelete={showDisabled ? undefined : handleDeleteClick}
+                onEdit={showDisabled ? undefined : handleEditClick}
+                onRestore={showDisabled ? handleRestoreClick : undefined}
                 product={product}
+                showRestore={showDisabled}
               />
             ))}
       </div>
@@ -275,20 +338,35 @@ export const ProductsSection = () => {
       {!isMobile && (
         <div className="flex items-center justify-between rounded-2xl border border-border/40 bg-card/80 p-4">
           <div className="text-muted-foreground text-sm">
-            Página {page} de {pagination.totalPages || 1}
-            {pagination.total > 0 &&
+            Página {page} de{" "}
+            {showDisabled
+              ? disabledPagination.totalPages || 1
+              : pagination.totalPages || 1}
+            {(showDisabled ? disabledPagination.total : pagination.total) > 0 &&
               ` • ${products.length} produtos encontrados`}
           </div>
           <div className="flex gap-2">
             <Button
-              disabled={page === 1 || pagination.isLoading}
+              disabled={
+                page === 1 ||
+                (showDisabled
+                  ? disabledPagination.isLoading
+                  : pagination.isLoading)
+              }
               onClick={() => setPage(Math.max(1, page - 1))}
               variant="outline"
             >
               Anterior
             </Button>
             <Button
-              disabled={!pagination.hasMore || pagination.isLoading}
+              disabled={
+                (showDisabled
+                  ? !disabledPagination.hasMore
+                  : !pagination.hasMore) ||
+                (showDisabled
+                  ? disabledPagination.isLoading
+                  : pagination.isLoading)
+              }
               onClick={() => setPage(page + 1)}
               variant="outline"
             >
@@ -301,29 +379,51 @@ export const ProductsSection = () => {
       {/* Mobile Infinite Scroll Observer */}
       {isMobile && (
         <InfiniteScrollObserver
-          hasMore={infinite.hasNextPage}
-          isLoading={infinite.isFetchingNextPage}
-          onIntersect={() => infinite.fetchNextPage()}
+          hasMore={
+            showDisabled ? disabledInfinite.hasNextPage : infinite.hasNextPage
+          }
+          isLoading={
+            showDisabled
+              ? disabledInfinite.isFetchingNextPage
+              : infinite.isFetchingNextPage
+          }
+          onIntersect={() => {
+            if (showDisabled) {
+              disabledInfinite.fetchNextPage();
+            } else {
+              infinite.fetchNextPage();
+            }
+          }}
         />
       )}
 
       {!isLoading && products.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border/50 border-dashed bg-card/60 p-12 text-center">
           <p className="font-semibold text-lg">
-            {deferredSearchTerm
+            {showDisabled
+              ? deferredSearchTerm
+                ? "Nenhum produto desabilitado encontrado"
+                : "Nenhum produto desabilitado"
+              : deferredSearchTerm
               ? "Nenhum produto encontrado"
               : "Nenhum produto ainda"}
           </p>
           <p className="max-w-md text-muted-foreground text-sm">
-            {deferredSearchTerm
+            {showDisabled
+              ? deferredSearchTerm
+                ? "Tente ajustar sua busca."
+                : "Não há produtos desabilitados no momento."
+              : deferredSearchTerm
               ? "Tente ajustar sua busca ou adicione um novo produto."
               : "Comece adicionando seus produtos principais ou novos itens ao catálogo. Eles aparecerão aqui prontos para serem gerenciados."}
           </p>
-          <Button onClick={handleCreateClick}>
-            {deferredSearchTerm
-              ? "Adicionar novo produto"
-              : "Adicionar seu primeiro produto"}
-          </Button>
+          {!showDisabled && (
+            <Button onClick={handleCreateClick}>
+              {deferredSearchTerm
+                ? "Adicionar novo produto"
+                : "Adicionar seu primeiro produto"}
+            </Button>
+          )}
         </div>
       ) : null}
 

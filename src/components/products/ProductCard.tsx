@@ -19,9 +19,12 @@ export const ProductCard = ({
   product,
   onEdit,
   onDelete,
+  onRestore,
   onAdjustQuantity,
   isDeleting,
+  isRestoring,
   isAdjustingQuantity,
+  showRestore = false,
 }: ProductCardProps) => {
   const createdLabel =
     product.createdAt instanceof Date
@@ -113,17 +116,35 @@ export const ProductCard = ({
         </p>
       </CardContent>
       <CardFooter className="flex items-center justify-between gap-2">
-        <Button onClick={() => onEdit(product)} size="sm" variant="outline">
-          Editar
-        </Button>
-        <Button
-          disabled={isDeleting}
-          onClick={() => onDelete(product)}
-          size="sm"
-          variant="destructive"
-        >
-          {isDeleting ? "Excluindo..." : "Excluir"}
-        </Button>
+        {showRestore ? (
+          <Button
+            className="w-full"
+            disabled={isRestoring}
+            onClick={() => onRestore?.(product)}
+            size="sm"
+            variant="default"
+          >
+            {isRestoring ? "Habilitando..." : "Habilitar"}
+          </Button>
+        ) : (
+          <>
+            {onEdit && (
+              <Button onClick={() => onEdit(product)} size="sm" variant="outline">
+                Editar
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                disabled={isDeleting}
+                onClick={() => onDelete(product)}
+                size="sm"
+                variant="destructive"
+              >
+                {isDeleting ? "Desabilitando..." : "Desabilitar"}
+              </Button>
+            )}
+          </>
+        )}
       </CardFooter>
     </Card>
   );

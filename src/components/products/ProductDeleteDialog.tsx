@@ -29,11 +29,11 @@ export const ProductDeleteDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <Trash2 className="size-5" />
-            Excluir produto
+            Desabilitar produto
           </DialogTitle>
           <DialogDescription>
-            Tem certeza que deseja remover {product?.name}? Esta ação não pode
-            ser desfeita.
+            Tem certeza que deseja desabilitar {product?.name}? O produto será
+            ocultado das listagens, mas poderá ser habilitado novamente depois.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
@@ -47,8 +47,10 @@ export const ProductDeleteDialog = ({
                     {orderItemsCount === 1 ? "pedido" : "pedidos"}.
                   </p>
                   <p>
-                    Ao excluir este produto, ele será removido automaticamente
-                    de todos os pedidos associados.
+                    Ao desabilitar este produto, ele será removido
+                    automaticamente apenas de pedidos pendentes ou cancelados.
+                    Pedidos já completados manterão a referência ao produto para
+                    preservar o histórico.
                   </p>
                 </div>
               </div>
@@ -58,9 +60,9 @@ export const ProductDeleteDialog = ({
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-[2px] size-4 text-destructive" />
               <p>
-                Excluir este produto o removerá das listagens e relatórios de
-                inventário. Considere definir a quantidade como zero se preferir
-                manter o registro.
+                Desabilitar este produto o ocultará das listagens e relatórios
+                de inventário. Você poderá habilitá-lo novamente a qualquer
+                momento através da seção "Itens Desabilitados".
               </p>
             </div>
           </div>
@@ -78,7 +80,7 @@ export const ProductDeleteDialog = ({
             onClick={onConfirm}
             variant="destructive"
           >
-            {isDeleting ? "Excluindo..." : "Excluir"}
+            {isDeleting ? "Desabilitando..." : "Desabilitar"}
           </Button>
         </DialogFooter>
       </DialogContent>
