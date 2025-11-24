@@ -1,0 +1,1 @@
+ALTER TABLE "caicara-stock_product" ADD COLUMN "isDisabled" boolean DEFAULT false NOT NULL;
