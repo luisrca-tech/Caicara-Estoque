@@ -1,29 +1,80 @@
-# Create T3 App
+# Caiçara Stock
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+**Team**
+- Lucas Damaceno de Assis Santos
+- Ana Beatriz Damaceno de Assis Santos
+- Luis Felipe da Rocha Cruz Alves Oliveira
 
-## What's next? How do I make an app with this?
+🎥 [Project walkthrough](https://www.youtube.com/watch?v=GFsTN0_M9Bg)
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+## Overview
+Caiçara Stock is a stock-management dashboard tailored for small beverage businesses. It centralizes product registration, quantity adjustments, disabled-item recovery, and order visibility in a responsive interface built with a modern T3 stack foundation.
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Tech Stack
+- **Next.js 15 (App Router + RSC)** for the web layer
+- **React 19** with Suspense-ready client components
+- **Bun** as the package manager/runtime
+- **tRPC 11** for type-safe APIs between client and server
+- **Drizzle ORM + PostgreSQL** for the data layer
+- **Tailwind CSS + Radix UI + shadcn/ui primitives** for styling and accessibility
+- **TanStack Query** for data fetching/caching
+- **nuqs** to keep filters synchronized with the URL
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## Prerequisites
+- [Bun](https://bun.sh/) ≥ 1.1 (ships with the project lockfile)
+- Node.js 20+ (Bun uses it under the hood)
+- Docker Desktop / Docker Engine for the local PostgreSQL container
 
-## Learn More
+## Environment Variables
+Create a `.env` file at the project root:
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+```
+DATABASE_URL="postgres://postgres:dev123@localhost:5432/caicara-stock"
+```
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+- `DATABASE_URL` points to the local Postgres container created by `start-database.sh`. Adjust host, port, or credentials for staging/production.
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+## Local Setup
+```bash
+bun install
+```
 
-## How do I deploy this?
+1. **Start PostgreSQL via Docker**
+   ```bash
+   ./start-database.sh
+   ```
+   - Spins up (or resumes) a container named `caicara-stock-postgres`.
+   - Default credentials: `postgres / dev123`.
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+2. **Apply database migrations**
+   ```bash
+   bun run db:migrate
+   ```
+   - `bun run db:generate` emits SQL from schema updates.
+   - `bun run db:push` synchronizes schema diffs without SQL files.
+
+3. **Run the development server**
+   ```bash
+   bun run dev
+   ```
+   The app will be available at `http://localhost:3000`.
+
+## Quality & Build Commands
+- `bun run typecheck` – strict TypeScript validation
+- `bun run check` – Biome linting/formatting checks
+- `bun run build` – optimized Next.js production build
+- `bun run preview` – build and serve via `next start`
+
+## Docker Notes
+- `start-database.sh` handles idempotent container startup (creates if missing, resumes if paused).
+- Inspect or connect to the database with any PostgreSQL client using the same `DATABASE_URL`.
+- Optional cleanup:
+  ```bash
+  docker stop caicara-stock-postgres
+  docker rm caicara-stock-postgres
+  ```
+
+## Deployment
+- Works on any platform that supports Next.js 15 + Node 20 (Vercel, Netlify, Docker, etc.).
+- Configure `DATABASE_URL` (and any other secrets) in the target environment before running `bun run build`.
+
