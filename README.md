@@ -4,6 +4,7 @@
 - Lucas Damaceno de Assis Santos
 - Ana Beatriz Damaceno de Assis Santos
 - Luis Felipe da Rocha Cruz Alves Oliveira
+- Raul Vitor Farias Vieira
 
 🎥 [Project walkthrough](https://www.youtube.com/watch?v=GFsTN0_M9Bg)
 
