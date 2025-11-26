@@ -5,6 +5,9 @@
 - Ana Beatriz Damaceno de Assis Santos
 - Luis Felipe da Rocha Cruz Alves Oliveira
 - Raul Vitor Farias Vieira
+- Davi da Silva Santana
+- Matheus Martins de Souza
+- Arthur Rodrigues Portela
 
 🎥 [Project walkthrough](https://www.youtube.com/watch?v=GFsTN0_M9Bg)
 
